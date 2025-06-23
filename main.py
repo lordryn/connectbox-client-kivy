@@ -18,6 +18,7 @@ class ConnectBoxCore:
         self.pubkey = ""
         self.port = None
         self.heartbeat_active = False
+        self.heartbeat_thread = None
 
     def generate_key(self):
         if not os.path.exists(KEY_PATH):
@@ -62,6 +63,27 @@ class ConnectBoxCore:
         except Exception as e:
             callback(f"Ping failed: {e}")
 
+    def start_heartbeat(self, callback):
+        if self.heartbeat_active:
+            callback("Heartbeat already running.")
+            return
+
+        self.heartbeat_active = True
+        def loop():
+            while self.heartbeat_active:
+                self.send_ping(callback)
+                time.sleep(30)
+        self.heartbeat_thread = threading.Thread(target=loop, daemon=True)
+        self.heartbeat_thread.start()
+        callback("Heartbeat started.")
+
+    def stop_heartbeat(self, callback):
+        if not self.heartbeat_active:
+            callback("Heartbeat is not running.")
+            return
+        self.heartbeat_active = False
+        callback("Heartbeat stopped.")
+
 class ConnectBoxUI(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
@@ -85,6 +107,14 @@ class ConnectBoxUI(BoxLayout):
         self.btn_ping.bind(on_press=self.on_ping)
         self.add_widget(self.btn_ping)
 
+        self.btn_start_hb = Button(text="Start Heartbeat")
+        self.btn_start_hb.bind(on_press=self.on_start_heartbeat)
+        self.add_widget(self.btn_start_hb)
+
+        self.btn_stop_hb = Button(text="Stop Heartbeat")
+        self.btn_stop_hb.bind(on_press=self.on_stop_heartbeat)
+        self.add_widget(self.btn_stop_hb)
+
     def update_status(self, msg):
         self.status.text = msg
         print(msg)
@@ -102,6 +132,12 @@ class ConnectBoxUI(BoxLayout):
 
     def on_ping(self, instance):
         self.core.send_ping(self.update_status)
+
+    def on_start_heartbeat(self, instance):
+        self.core.start_heartbeat(self.update_status)
+
+    def on_stop_heartbeat(self, instance):
+        self.core.stop_heartbeat(self.update_status)
 
 class ConnectBoxApp(App):
     def build(self):
