@@ -63,8 +63,12 @@ To change hostname, port, or server:
 
 ---
 
-## 🧠 Credits
+## 🛠️ Authorship & Project Ownership
 
-Built by [lord ryn]  
-Part of the ConnectBox + Jump Server ecosystem  
-In collaboration with ChatGPT architecture planning
+This project, **ConnectBox™** and associated programs, were designed and developed by Ryan "Lord Ryn" Wheeler.
+
+All system architecture, core code, and workflow logic were authored and tested by the developer, with AI used as a supplementary tool for troubleshooting, formatting, and planning.
+
+Unless otherwise stated, all code and design decisions originate from the project's creator. AI contributions were used only under human supervision and refinement.
+
+For licensing, contributions, or attribution inquiries, contact: lordryn@yahoo.com
