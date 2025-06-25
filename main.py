@@ -19,6 +19,7 @@ class ConnectBoxCore:
         self.port = None
         self.heartbeat_active = False
         self.heartbeat_thread = None
+        self.ssh_process = None
 
     def generate_key(self):
         if not os.path.exists(KEY_PATH):
@@ -84,6 +85,32 @@ class ConnectBoxCore:
         self.heartbeat_active = False
         callback("Heartbeat stopped.")
 
+    def start_tunnel(self, callback):
+        if self.ssh_process:
+            callback("Tunnel already running.")
+            return
+        if not self.port:
+            callback("No port assigned. Cannot start tunnel.")
+            return
+        try:
+            self.ssh_process = subprocess.Popen([
+                "ssh", "-i", KEY_PATH,
+                "-o", "StrictHostKeyChecking=no",
+                "-N", "-R", f"{self.port}:localhost:22",
+                f"ryn@wcserv.local"
+            ])
+            callback("Tunnel started.")
+        except Exception as e:
+            callback(f"Tunnel failed: {e}")
+
+    def stop_tunnel(self, callback):
+        if self.ssh_process:
+            self.ssh_process.terminate()
+            self.ssh_process = None
+            callback("Tunnel stopped.")
+        else:
+            callback("No tunnel to stop.")
+
 class ConnectBoxUI(BoxLayout):
     def __init__(self, **kwargs):
         super().__init__(orientation='vertical', **kwargs)
@@ -115,6 +142,14 @@ class ConnectBoxUI(BoxLayout):
         self.btn_stop_hb.bind(on_press=self.on_stop_heartbeat)
         self.add_widget(self.btn_stop_hb)
 
+        self.btn_start_tunnel = Button(text="Start Tunnel")
+        self.btn_start_tunnel.bind(on_press=self.on_start_tunnel)
+        self.add_widget(self.btn_start_tunnel)
+
+        self.btn_stop_tunnel = Button(text="Stop Tunnel")
+        self.btn_stop_tunnel.bind(on_press=self.on_stop_tunnel)
+        self.add_widget(self.btn_stop_tunnel)
+
     def update_status(self, msg):
         self.status.text = msg
         print(msg)
@@ -138,6 +173,12 @@ class ConnectBoxUI(BoxLayout):
 
     def on_stop_heartbeat(self, instance):
         self.core.stop_heartbeat(self.update_status)
+
+    def on_start_tunnel(self, instance):
+        self.core.start_tunnel(self.update_status)
+
+    def on_stop_tunnel(self, instance):
+        self.core.stop_tunnel(self.update_status)
 
 class ConnectBoxApp(App):
     def build(self):
