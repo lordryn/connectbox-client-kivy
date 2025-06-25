@@ -54,8 +54,8 @@ To change hostname, port, or server:
 
 ## 📋 Roadmap
 
-- [ ] Add Start/Stop tunnel buttons
-- [ ] Launch and manage SSH subprocess
+- [x] Add Start/Stop tunnel buttons
+- [x] Launch and manage SSH subprocess
 - [ ] Visual tunnel + heartbeat status indicators
 - [ ] System tray mode / background support
 - [ ] Android APK packaging (Buildozer)
